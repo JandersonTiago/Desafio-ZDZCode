@@ -1,7 +1,7 @@
 <template>
   <div>
     <Header />
-    <h1 class="task-h1">Gerenciador de tarefas</h1>
+    <h1 class="task-h1">Gerenciador de Tarefas</h1>
     
     <form class="task-form">
       <div class="form-group">
@@ -49,7 +49,7 @@
         <tr v-for="task in tasks" :key="task.id_tarefa">
           <td>{{ task.id_tarefa }}</td>
           <td>{{ task.title }}</td>
-          <td>{{ task.date }}</td>
+          <td>{{ formatarData(task.date) }}</td> <!-- Formatar a data -->
           <td>{{ task.status }}</td>
           <td>{{ task.responsible }}</td>
           <td><button @click="atualizarTarefa(task)">Atualizar</button></td>
@@ -61,7 +61,6 @@
     <Footer />
   </div>
 </template>
-
 
 <script>
 import Header from '~/components/navbar.vue'
@@ -79,35 +78,48 @@ export default {
       taskStatus: '',
       taskResponsible: '',
       tasks: [],
-      nextId: 1, // Variável para gerar o próximo ID automaticamente
-      users: [] // Array para armazenar os nomes dos usuários
+      nextId: 1,
+      users: []
     }
   },
   methods: {
     async cadastrarTarefa() {
-      // Adiciona uma nova tarefa à lista
-      const newTask = {
-        id_tarefa: this.nextId,
-        title: this.taskTitle,
-        date: this.taskDate,
-        status: this.taskStatus,
-        responsible: this.taskResponsible
-      }
-      this.tasks.push(newTask)
-      this.nextId++ // Incrementa o próximo ID
+  try {
+    const response = await this.$axios.post('http://localhost:5159/Tarefas', {
+      Titulo: this.taskTitle,
+      Data: this.taskDate,
+      Status: this.taskStatus,
+      Responsavel: this.taskResponsible
+    });
 
-      // Reseta os campos do formulário
-      this.taskTitle = ''
-      this.taskDate = ''
-      this.taskStatus = ''
-      this.taskResponsible = ''
-    },
+    // Verifica se a resposta da API foi bem-sucedida
+    if (response.status === 200) {
+      const newTask = {
+        id_tarefa: response.data.id_tarefa,
+        title: response.data.titulo,
+        date: response.data.data,
+        status: response.data.status,
+        responsible: response.data.responsavel
+      };
+      this.tasks.push(newTask);
+      this.nextId++;
+      this.taskTitle = '';
+      this.taskDate = '';
+      this.taskStatus = '';
+      this.taskResponsible = '';
+    } else {
+      console.error('Falha ao cadastrar tarefa:', response.data);
+    }
+  } catch (error) {
+    console.error('Erro ao cadastrar tarefa:', error);
+  }
+},
+
+
     atualizarTarefa(task) {
-      // Implemente a lógica para atualizar a tarefa
       console.log('Atualizando tarefa:', task);
     },
     excluirTarefa(task) {
-      // Implemente a lógica para excluir a tarefa
       const index = this.tasks.indexOf(task);
       if (index !== -1) {
         this.tasks.splice(index, 1);
@@ -115,25 +127,27 @@ export default {
     },
     async buscarUsuarios() {
       try {
-        // Faz a requisição para a API que retorna os usuários
         const response = await this.$axios.get('http://localhost:5159/Usuario');
-        
-        // Extrai apenas os nomes dos usuários
         this.users = response.data.map(user => user.nome);
-        
-        console.log(this.users);
-
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
       }
+    },
+    formatarData(data) {
+      // Formatar a data para o formato brasileiro (DD/MM/AAAA)
+      if (!data) return '';
+      const dataObj = new Date(data);
+      const dia = dataObj.getDate().toString().padStart(2, '0');
+      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+      const ano = dataObj.getFullYear();
+      return `${dia}/${mes}/${ano}`;
     }
   },
   mounted() {
-    this.buscarUsuarios(); // Chama a função para buscar os usuários ao montar o componente
+    this.buscarUsuarios();
   }
 }
 </script>
-
 
 <style scoped>
 /* Estilos específicos da página principal */
