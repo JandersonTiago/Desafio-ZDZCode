@@ -65,6 +65,7 @@
 <script>
 import Header from '~/components/navbar.vue'
 import Footer from '~/components/footer.vue'
+import axios from 'axios';
 
 export default {
   components: {
@@ -84,55 +85,51 @@ export default {
   },
   methods: {
     async cadastrarTarefa() {
-  try {
-    const response = await this.$axios.post('http://localhost:5159/Tarefas', {
-      Titulo: this.taskTitle,
-      Data: this.taskDate,
-      Status: this.taskStatus,
-      Responsavel: this.taskResponsible
-    });
+  const newTask = {
+    id: this.generateUniqueId(), // Usando o método para gerar o ID único
+    titulo: this.taskTitle,
+    data: this.taskDate,
+    status: this.taskStatus,
+    responsavel: this.taskResponsible
+  }
 
-    // Verifica se a resposta da API foi bem-sucedida
-    if (response.status === 200) {
-      const newTask = {
-        id_tarefa: response.data.id_tarefa,
-        title: response.data.titulo,
-        date: response.data.data,
-        status: response.data.status,
-        responsible: response.data.responsavel
-      };
-      this.tasks.push(newTask);
-      this.nextId++;
-      this.taskTitle = '';
-      this.taskDate = '';
-      this.taskStatus = '';
-      this.taskResponsible = '';
-    } else {
-      console.error('Falha ao cadastrar tarefa:', response.data);
-    }
+  try {
+    // Faz a requisição POST para a API usando o Axios
+    await axios.post('http://localhost:5159/Tarefas', newTask);
+
+    // Se a requisição for bem-sucedida, adiciona a nova tarefa à lista localmente
+    this.tasks.push(newTask);
+
+    // Reseta os campos do formulário
+    this.taskTitle = '';
+    this.taskDate = '';
+    this.taskStatus = '';
+    this.taskResponsible = '';
+
+    // Exibe uma mensagem de sucesso para o usuário
+    alert('Tarefa cadastrada com sucesso!');
   } catch (error) {
     console.error('Erro ao cadastrar tarefa:', error);
+    // Exibe uma mensagem de erro para o usuário
+    alert('Erro ao cadastrar tarefa. Por favor, tente novamente.');
   }
 },
 
 
-    atualizarTarefa(task) {
-      console.log('Atualizando tarefa:', task);
+    generateUniqueId() {
+      const currentDate = new Date();
+      return parseInt(currentDate.getTime() / 1000);
     },
-    excluirTarefa(task) {
-      const index = this.tasks.indexOf(task);
-      if (index !== -1) {
-        this.tasks.splice(index, 1);
-      }
-    },
+
     async buscarUsuarios() {
       try {
-        const response = await this.$axios.get('http://localhost:5159/Usuario');
+        const response = await axios.get('http://localhost:5159/Usuario');
         this.users = response.data.map(user => user.nome);
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
       }
     },
+
     formatarData(data) {
       // Formatar a data para o formato brasileiro (DD/MM/AAAA)
       if (!data) return '';
@@ -143,6 +140,7 @@ export default {
       return `${dia}/${mes}/${ano}`;
     }
   },
+
   mounted() {
     this.buscarUsuarios();
   }
