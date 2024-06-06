@@ -26,7 +26,7 @@
           <td>{{ user.id }}</td>
           <td>{{ user.nome }}</td>
           <td><button @click="iniciarEdicao(user)">Atualizar</button></td>
-          <td><button @click="excluirUsuario(user)">Excluir</button></td>
+          <td><button class="delete-button" @click="excluirUsuario(user)">Excluir</button></td>
         </tr>
       </tbody>
     </table>
@@ -199,5 +199,14 @@ button:hover {
 
 .user-table th {
   background-color: #f2f2f2;
+}
+
+/* Estilo para o botão de excluir */
+button.delete-button {
+  background-color: #DC143C; /* Tom de vermelho confortável */
+}
+
+button.delete-button:hover {
+  background-color: #B22222; /* Tom de vermelho mais escuro */
 }
 </style>

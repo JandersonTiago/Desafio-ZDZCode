@@ -17,9 +17,9 @@
       <div class="form-group">
         <label for="task-status">Status</label>
         <select id="task-status" v-model="taskStatus">
-          <option value="em espera">Em Espera</option>
-          <option value="em processo">Em Processo</option>
-          <option value="concluido">Concluído</option>
+          <option value="Em espera">Em Espera</option>
+          <option value="Em processo">Em Processo</option>
+          <option value="Concluido">Concluído</option>
         </select>
       </div>
       
@@ -53,7 +53,7 @@
           <td>{{ task.status }}</td>
           <td>{{ task.responsible }}</td>
           <td><button @click="atualizarTarefa(task)">Atualizar</button></td>
-          <td><button @click="excluirTarefa(task)">Excluir</button></td>
+          <td><button class="delete-button" @click="excluirTarefa(task)">Excluir</button></td>
         </tr>
       </tbody>
     </table>
@@ -193,5 +193,14 @@ button:hover {
 
 .task-table th {
   background-color: #f2f2f2;
+}
+
+/* Estilo para o botão de excluir */
+button.delete-button {
+  background-color: #DC143C; /* Tom de vermelho confortável */
+}
+
+button.delete-button:hover {
+  background-color: #B22222; /* Tom de vermelho mais escuro */
 }
 </style>
