@@ -34,3 +34,4 @@ C:\Users\jande\OneDrive\Área de Trabalho\Desafio-ZDZCode\API\APIZDZCode\APIZDZC
 C:\Users\jande\OneDrive\Área de Trabalho\Desafio-ZDZCode\API\APIZDZCode\APIZDZCode\bin\Debug\net6.0\Microsoft.EntityFrameworkCore.Abstractions.dll
 C:\Users\jande\OneDrive\Área de Trabalho\Desafio-ZDZCode\API\APIZDZCode\APIZDZCode\bin\Debug\net6.0\Microsoft.Extensions.Caching.Memory.dll
 C:\Users\jande\OneDrive\Área de Trabalho\Desafio-ZDZCode\API\APIZDZCode\APIZDZCode\bin\Debug\net6.0\Microsoft.EntityFrameworkCore.InMemory.dll
+C:\Users\jande\OneDrive\Área de Trabalho\Desafio-ZDZCode\API\APIZDZCode\APIZDZCode\obj\Debug\net6.0\APIZDZCode.sourcelink.json
