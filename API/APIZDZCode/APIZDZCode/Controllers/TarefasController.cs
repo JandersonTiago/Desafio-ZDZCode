@@ -54,6 +54,64 @@ namespace APIZDZCode.Controllers
             return tarefas;
         }
 
+        [HttpDelete("{id}")]
+        public IActionResult ExcluirTarefa(int id)
+        {
+            try
+            {
+                // Lógica para excluir a tarefa do arquivo CSV
+                if (ExcluirTarefaDoCSV(id))
+                {
+                    return Ok(); // Retorna 200 OK se a exclusão for bem-sucedida
+                }
+                else
+                {
+                    return NotFound(); // Retorna 404 Not Found se a tarefa não for encontrada
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao excluir tarefa: {ex.Message}"); // Retorna 500 Internal Server Error em caso de erro
+            }
+        }
+
+        private bool ExcluirTarefaDoCSV(int id)
+        {
+            // Lê todas as tarefas do arquivo CSV
+            var tarefas = LerTarefasDoCSV().ToList();
+
+            // Encontra a tarefa com o ID correspondente
+            var tarefaParaExcluir = tarefas.FirstOrDefault(t => t.Id == id);
+
+            // Se a tarefa foi encontrada, remove-a da lista e atualiza o arquivo CSV
+            if (tarefaParaExcluir != null)
+            {
+                tarefas.Remove(tarefaParaExcluir);
+
+                // Reescreve o arquivo CSV com as tarefas atualizadas
+                ReescreverArquivoCSV(tarefas);
+
+                return true; // Retorna true indicando que a exclusão foi bem-sucedida
+            }
+            else
+            {
+                return false; // Retorna false indicando que a tarefa não foi encontrada
+            }
+        }
+
+        private void ReescreverArquivoCSV(IEnumerable<Tarefa> tarefas)
+        {
+            // Reescreve o arquivo CSV com as tarefas atualizadas
+            using (StreamWriter writer = new StreamWriter(caminhoArquivo, false, Encoding.UTF8))
+            {
+                foreach (var tarefa in tarefas)
+                {
+                    string linhaCSV = $"{tarefa.Id},{tarefa.Titulo},{tarefa.Data},{tarefa.Status},{tarefa.Responsavel}";
+                    writer.WriteLine(linhaCSV);
+                }
+            }
+        }
+
         private IEnumerable<Tarefa> LerTarefasDoCSV()
         {
             var tarefas = new List<Tarefa>();

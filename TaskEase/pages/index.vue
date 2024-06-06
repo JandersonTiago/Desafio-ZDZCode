@@ -49,7 +49,7 @@
         <tr v-for="task in tasks" :key="task.id">
           <td>{{ task.id }}</td>
           <td>{{ task.titulo }}</td>
-          <td>{{ formatarData(task.data) }}</td> <!-- Formatar a data -->
+          <td>{{ formatarData(task.data) }}</td>
           <td>{{ task.status }}</td>
           <td>{{ task.responsavel }}</td>
           <td><button @click="atualizarTarefa(task)">Atualizar</button></td>
@@ -86,7 +86,7 @@ export default {
   methods: {
     async cadastrarTarefa() {
       const newTask = {
-        id: this.generateUniqueId(), // Usando o método para gerar o ID único
+        id: this.generateUniqueId(),
         titulo: this.taskTitle,
         data: this.taskDate,
         status: this.taskStatus,
@@ -94,23 +94,15 @@ export default {
       }
 
       try {
-        // Faz a requisição POST para a API usando o Axios
         await axios.post('http://localhost:5159/Tarefas', newTask);
-
-        // Se a requisição for bem-sucedida, adiciona a nova tarefa à lista localmente
         this.tasks.push(newTask);
-
-        // Reseta os campos do formulário
         this.taskTitle = '';
         this.taskDate = '';
         this.taskStatus = '';
         this.taskResponsible = '';
-
-        // Exibe uma mensagem de sucesso para o usuário
         alert('Tarefa cadastrada com sucesso!');
       } catch (error) {
         console.error('Erro ao cadastrar tarefa:', error);
-        // Exibe uma mensagem de erro para o usuário
         alert('Erro ao cadastrar tarefa. Por favor, tente novamente.');
       }
     },
@@ -139,25 +131,37 @@ export default {
     },
 
     formatarData(data) {
-      // Formatar a data para o formato brasileiro (DD/MM/AAAA)
       if (!data) return '';
       const dataObj = new Date(data);
       const dia = dataObj.getDate().toString().padStart(2, '0');
       const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
       const ano = dataObj.getFullYear();
       return `${dia}/${mes}/${ano}`;
+    },
+
+    async excluirTarefa(task) {
+      try {
+        const response = await axios.delete(`http://localhost:5159/Tarefas/${task.id}`);
+        if (response.status === 200) {
+          this.tasks = this.tasks.filter(t => t.id !== task.id);
+          console.log('Tarefa excluída com sucesso:', task);
+        } else {
+          console.error('Falha ao excluir tarefa:', response.data);
+        }
+      } catch (error) {
+        console.error('Erro ao excluir tarefa:', error);
+      }
     }
   },
 
   mounted() {
     this.buscarUsuarios();
-    this.buscarTarefas(); // Chame o método para buscar as tarefas ao montar o componente
+    this.buscarTarefas();
   }
 }
 </script>
 
 <style scoped>
-/* Estilos específicos da página principal */
 .task-form, .task-table, .task-h1 {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -216,12 +220,11 @@ button:hover {
   background-color: #f2f2f2;
 }
 
-/* Estilo para o botão de excluir */
 button.delete-button {
-  background-color: #DC143C; /* Tom de vermelho confortável */
+  background-color: #DC143C;
 }
 
 button.delete-button:hover {
-  background-color: #B22222; /* Tom de vermelho mais escuro */
+  background-color: #B22222;
 }
 </style>
