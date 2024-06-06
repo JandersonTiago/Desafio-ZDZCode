@@ -36,6 +36,27 @@ namespace APIZDZCode.Controllers
             return usuarios;
         }
 
+        [HttpDelete("{id}")]
+        public IActionResult ExcluirUsuario(int id)
+        {
+            try
+            {
+                // Lógica para excluir o usuário do arquivo CSV (ou de onde você estiver armazenando os dados)
+                if (ExcluirUsuarioDoCSV(id))
+                {
+                    return Ok(); // Retorna 200 OK se a exclusão for bem-sucedida
+                }
+                else
+                {
+                    return NotFound(); // Retorna 404 Not Found se o usuário não for encontrado
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao excluir usuário: {ex.Message}"); // Retorna 500 Internal Server Error em caso de erro
+            }
+        }
+
         private void SalvarUsuarioEmCSV(Usuario usuario)
         {
             // Abre ou cria o arquivo CSV para escrita
@@ -70,6 +91,43 @@ namespace APIZDZCode.Controllers
             }
 
             return usuarios;
+        }
+
+        private bool ExcluirUsuarioDoCSV(int id)
+        {
+            // Lê todos os usuários do arquivo CSV
+            var usuarios = LerUsuariosDoCSV().ToList();
+
+            // Encontra o usuário com o ID correspondente
+            var usuarioParaExcluir = usuarios.FirstOrDefault(u => u.Id == id);
+
+            // Se o usuário foi encontrado, remove-o da lista e atualiza o arquivo CSV
+            if (usuarioParaExcluir != null)
+            {
+                usuarios.Remove(usuarioParaExcluir);
+
+                // Reescreve o arquivo CSV com os usuários atualizados
+                ReescreverArquivoCSV(usuarios);
+
+                return true; // Retorna true indicando que a exclusão foi bem-sucedida
+            }
+            else
+            {
+                return false; // Retorna false indicando que o usuário não foi encontrado
+            }
+        }
+
+        private void ReescreverArquivoCSV(IEnumerable<Usuario> usuarios)
+        {
+            // Reescreve o arquivo CSV com os usuários atualizados
+            using (StreamWriter writer = new StreamWriter(caminhoArquivo, false, Encoding.UTF8))
+            {
+                foreach (var usuario in usuarios)
+                {
+                    string linhaCSV = $"{usuario.Id},{usuario.Nome}";
+                    writer.WriteLine(linhaCSV);
+                }
+            }
         }
     }
 }

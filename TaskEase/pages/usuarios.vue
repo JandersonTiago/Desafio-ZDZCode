@@ -24,7 +24,7 @@
       <tbody>
         <tr v-for="user in users" :key="user.id">
           <td>{{ user.id }}</td>
-          <td>{{ user.nome }}</td> <!-- Ajuste para refletir o retorno correto -->
+          <td>{{ user.nome }}</td>
           <td><button @click="atualizarUsuario(user)">Atualizar</button></td>
           <td><button @click="excluirUsuario(user)">Excluir</button></td>
         </tr>
@@ -34,7 +34,6 @@
     <Footer />
   </div> 
 </template>
-
 
 <script>
 import Header from '~/components/navbar.vue' 
@@ -59,42 +58,51 @@ export default {
           method: 'POST',
           url: 'http://localhost:5159/Usuario',
           data: {
-            Id: this.generateUniqueId(), // Gera um ID único baseado na data atual
+            Id: this.generateUniqueId(),
             Nome: this.userName
           }
         });
 
-        // Verifica a resposta da API
         console.log('Resposta da API:', response.data);
 
-        // Adiciona um novo usuário à lista se a resposta for bem-sucedida
         const newUser = {
-          id: response.data.id, // Ajuste para refletir o retorno correto
-          nome: response.data.nome // Ajuste para refletir o retorno correto
+          id: response.data.id,
+          nome: response.data.nome
         };
         this.users.push(newUser);
 
-        // Reseta o campo do formulário
         this.userName = '';
       } catch (error) {
-        // Lida com erros, se ocorrerem
         console.error('Erro ao cadastrar usuário:', error);
       }
     },
     generateUniqueId() {
-      // Gera um ID único baseado na data atual
       const currentDate = new Date();
-      return parseInt(currentDate.getTime() / 1000); // Convertendo milissegundos para segundos e em seguida para inteiro
+      return parseInt(currentDate.getTime() / 1000);
     },
     async buscarUsuarios() {
       try {
         const response = await this.$axios.get('http://localhost:5159/Usuario');
-        this.users = response.data; // Atualiza a lista de usuários
+        this.users = response.data;
 
         console.log(response.data);
 
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
+      }
+    },
+    async excluirUsuario(user) {
+      try {
+        const response = await this.$axios.delete(`http://localhost:5159/Usuario/${user.id}`);
+
+        if (response.status === 200) {
+          this.users = this.users.filter(u => u.id !== user.id);
+          console.log('Usuário excluído com sucesso:', user);
+        } else {
+          console.error('Falha ao excluir usuário:', response.data);
+        }
+      } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
       }
     }
   },
@@ -103,7 +111,6 @@ export default {
   }
 }
 </script>
-
 
 <style scoped>
 /* Estilos específicos da página principal */
@@ -163,5 +170,3 @@ button:hover {
   background-color: #f2f2f2;
 }
 </style>
-
-
