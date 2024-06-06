@@ -9,7 +9,7 @@
         <input type="text" id="user-name" v-model="userName" />
       </div>
       
-      <button type="submit" @click.prevent="cadastrarUsuario">Cadastrar</button>
+      <button type="submit" @click.prevent="cadastrarOuAtualizarUsuario">{{ editingUser ? 'Atualizar' : 'Cadastrar' }}</button>
     </form>
     
     <table class="user-table">
@@ -25,7 +25,7 @@
         <tr v-for="user in users" :key="user.id">
           <td>{{ user.id }}</td>
           <td>{{ user.nome }}</td>
-          <td><button @click="atualizarUsuario(user)">Atualizar</button></td>
+          <td><button @click="iniciarEdicao(user)">Atualizar</button></td>
           <td><button @click="excluirUsuario(user)">Excluir</button></td>
         </tr>
       </tbody>
@@ -36,8 +36,8 @@
 </template>
 
 <script>
-import Header from '~/components/navbar.vue' 
-import Footer from '~/components/footer.vue' 
+import Header from '~/components/navbar.vue'
+import Footer from '~/components/footer.vue'
 
 export default {
   components: {
@@ -48,10 +48,17 @@ export default {
     return {
       userName: '',
       users: [],
-      lastGeneratedId: 0 // Inicializa o último ID como 0
+      editingUser: null // Para controlar o usuário que está sendo editado
     }
   },
   methods: {
+    async cadastrarOuAtualizarUsuario() {
+      if (this.editingUser) {
+        await this.atualizarUsuario(this.editingUser);
+      } else {
+        await this.cadastrarUsuario();
+      }
+    },
     async cadastrarUsuario() {
       try {
         const response = await this.$axios({
@@ -74,6 +81,26 @@ export default {
         this.userName = '';
       } catch (error) {
         console.error('Erro ao cadastrar usuário:', error);
+      }
+    },
+    async atualizarUsuario(user) {
+      try {
+        const response = await this.$axios.put(`http://localhost:5159/Usuario/${user.id}`, {
+          Id: user.id,
+          Nome: this.userName // Usar o nome atualizado a partir do campo de entrada
+        });
+
+        if (response.status === 200) {
+          // Atualiza a lista de usuários local com os novos dados
+          this.users = this.users.map(u => (u.id === user.id ? response.data : u));
+          console.log('Usuário atualizado com sucesso:', response.data);
+          this.editingUser = null;
+          this.userName = '';
+        } else {
+          console.error('Falha ao atualizar usuário:', response.data);
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar usuário:', error);
       }
     },
     generateUniqueId() {
@@ -104,6 +131,10 @@ export default {
       } catch (error) {
         console.error('Erro ao excluir usuário:', error);
       }
+    },
+    iniciarEdicao(user) {
+      this.userName = user.nome; // Preenche o campo de entrada com o nome do usuário a ser editado
+      this.editingUser = user; // Define o usuário que está sendo editado
     }
   },
   mounted() {

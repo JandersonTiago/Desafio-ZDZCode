@@ -57,6 +57,27 @@ namespace APIZDZCode.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public IActionResult AtualizarUsuario(int id, [FromBody] Usuario usuarioAtualizado)
+        {
+            try
+            {
+                // Lógica para atualizar o usuário no arquivo CSV (ou de onde você estiver armazenando os dados)
+                if (AtualizarUsuarioNoCSV(id, usuarioAtualizado))
+                {
+                    return Ok(usuarioAtualizado); // Retorna 200 OK se a atualização for bem-sucedida
+                }
+                else
+                {
+                    return NotFound(); // Retorna 404 Not Found se o usuário não for encontrado
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao atualizar usuário: {ex.Message}"); // Retorna 500 Internal Server Error em caso de erro
+            }
+        }
+
         private void SalvarUsuarioEmCSV(Usuario usuario)
         {
             // Abre ou cria o arquivo CSV para escrita
@@ -110,6 +131,30 @@ namespace APIZDZCode.Controllers
                 ReescreverArquivoCSV(usuarios);
 
                 return true; // Retorna true indicando que a exclusão foi bem-sucedida
+            }
+            else
+            {
+                return false; // Retorna false indicando que o usuário não foi encontrado
+            }
+        }
+
+        private bool AtualizarUsuarioNoCSV(int id, Usuario usuarioAtualizado)
+        {
+            // Lê todos os usuários do arquivo CSV
+            var usuarios = LerUsuariosDoCSV().ToList();
+
+            // Encontra o usuário com o ID correspondente
+            var usuarioParaAtualizar = usuarios.FirstOrDefault(u => u.Id == id);
+
+            // Se o usuário foi encontrado, atualiza seu nome e reescreve o arquivo CSV
+            if (usuarioParaAtualizar != null)
+            {
+                usuarioParaAtualizar.Nome = usuarioAtualizado.Nome;
+
+                // Reescreve o arquivo CSV com os usuários atualizados
+                ReescreverArquivoCSV(usuarios);
+
+                return true; // Retorna true indicando que a atualização foi bem-sucedida
             }
             else
             {
