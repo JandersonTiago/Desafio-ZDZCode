@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using APIZDZCode.Models; // Importe o namespace onde a classe Tarefa está localizada
+using APIZDZCode.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIZDZCode.Controllers
@@ -43,6 +43,59 @@ namespace APIZDZCode.Controllers
                 string linhaCSV = $"{tarefa.Id},{tarefa.Titulo},{tarefa.Data},{tarefa.Status},{tarefa.Responsavel}";
                 writer.WriteLine(linhaCSV);
             }
+        }
+
+        [HttpGet]
+        public IEnumerable<Tarefa> GetTarefas()
+        {
+            // Lógica para ler os dados do arquivo CSV
+            var tarefas = LerTarefasDoCSV();
+
+            return tarefas;
+        }
+
+        private IEnumerable<Tarefa> LerTarefasDoCSV()
+        {
+            var tarefas = new List<Tarefa>();
+
+            // Lê os dados do arquivo CSV e preenche a lista de tarefas
+            using (StreamReader reader = new StreamReader(caminhoArquivo, Encoding.UTF8))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var linha = reader.ReadLine();
+                    var campos = linha.Split(',');
+
+                    // Verifica se a linha contém pelo menos 5 campos (incluindo o responsável)
+                    if (campos.Length >= 5)
+                    {
+                        int id;
+                        if (int.TryParse(campos[0], out id))
+                        {
+                            // Obtém os valores dos campos
+                            string titulo = campos[1];
+                            DateTime data;
+                            if (DateTime.TryParse(campos[2], out data))
+                            {
+                                string status = campos[3];
+                                string responsavel = campos[4]; // Agora acessamos diretamente o índice 4
+
+                                // Cria uma nova tarefa e a adiciona à lista de tarefas
+                                tarefas.Add(new Tarefa
+                                {
+                                    Id = id,
+                                    Titulo = titulo,
+                                    Data = data,
+                                    Status = status,
+                                    Responsavel = responsavel
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return tarefas;
         }
     }
 }

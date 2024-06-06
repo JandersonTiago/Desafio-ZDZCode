@@ -46,12 +46,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="task in tasks" :key="task.id_tarefa">
-          <td>{{ task.id_tarefa }}</td>
-          <td>{{ task.title }}</td>
-          <td>{{ formatarData(task.date) }}</td> <!-- Formatar a data -->
+        <tr v-for="task in tasks" :key="task.id">
+          <td>{{ task.id }}</td>
+          <td>{{ task.titulo }}</td>
+          <td>{{ formatarData(task.data) }}</td> <!-- Formatar a data -->
           <td>{{ task.status }}</td>
-          <td>{{ task.responsible }}</td>
+          <td>{{ task.responsavel }}</td>
           <td><button @click="atualizarTarefa(task)">Atualizar</button></td>
           <td><button class="delete-button" @click="excluirTarefa(task)">Excluir</button></td>
         </tr>
@@ -85,36 +85,44 @@ export default {
   },
   methods: {
     async cadastrarTarefa() {
-  const newTask = {
-    id: this.generateUniqueId(), // Usando o método para gerar o ID único
-    titulo: this.taskTitle,
-    data: this.taskDate,
-    status: this.taskStatus,
-    responsavel: this.taskResponsible
-  }
+      const newTask = {
+        id: this.generateUniqueId(), // Usando o método para gerar o ID único
+        titulo: this.taskTitle,
+        data: this.taskDate,
+        status: this.taskStatus,
+        responsavel: this.taskResponsible
+      }
 
-  try {
-    // Faz a requisição POST para a API usando o Axios
-    await axios.post('http://localhost:5159/Tarefas', newTask);
+      try {
+        // Faz a requisição POST para a API usando o Axios
+        await axios.post('http://localhost:5159/Tarefas', newTask);
 
-    // Se a requisição for bem-sucedida, adiciona a nova tarefa à lista localmente
-    this.tasks.push(newTask);
+        // Se a requisição for bem-sucedida, adiciona a nova tarefa à lista localmente
+        this.tasks.push(newTask);
 
-    // Reseta os campos do formulário
-    this.taskTitle = '';
-    this.taskDate = '';
-    this.taskStatus = '';
-    this.taskResponsible = '';
+        // Reseta os campos do formulário
+        this.taskTitle = '';
+        this.taskDate = '';
+        this.taskStatus = '';
+        this.taskResponsible = '';
 
-    // Exibe uma mensagem de sucesso para o usuário
-    alert('Tarefa cadastrada com sucesso!');
-  } catch (error) {
-    console.error('Erro ao cadastrar tarefa:', error);
-    // Exibe uma mensagem de erro para o usuário
-    alert('Erro ao cadastrar tarefa. Por favor, tente novamente.');
-  }
-},
+        // Exibe uma mensagem de sucesso para o usuário
+        alert('Tarefa cadastrada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao cadastrar tarefa:', error);
+        // Exibe uma mensagem de erro para o usuário
+        alert('Erro ao cadastrar tarefa. Por favor, tente novamente.');
+      }
+    },
 
+    async buscarTarefas() {
+      try {
+        const response = await axios.get('http://localhost:5159/Tarefas');
+        this.tasks = response.data;
+      } catch (error) {
+        console.error('Erro ao buscar tarefas:', error);
+      }
+    },
 
     generateUniqueId() {
       const currentDate = new Date();
@@ -143,6 +151,7 @@ export default {
 
   mounted() {
     this.buscarUsuarios();
+    this.buscarTarefas(); // Chame o método para buscar as tarefas ao montar o componente
   }
 }
 </script>
