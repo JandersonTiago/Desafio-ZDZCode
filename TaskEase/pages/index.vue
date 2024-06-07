@@ -30,7 +30,7 @@
         </select>
       </div>
       
-      <button type="submit" @click.prevent="cadastrarTarefa">Cadastrar</button>
+      <button type="submit" @click.prevent="cadastrarOuAtualizarTarefa">{{ editingTask ? 'Atualizar' : 'Cadastrar' }}</button>
     </form>
     
     <table class="task-table">
@@ -52,7 +52,7 @@
           <td>{{ formatarData(task.data) }}</td>
           <td>{{ task.status }}</td>
           <td>{{ task.responsavel }}</td>
-          <td><button @click="atualizarTarefa(task)">Atualizar</button></td>
+          <td><button @click="iniciarEdicao(task)">Atualizar</button></td>
           <td><button class="delete-button" @click="excluirTarefa(task)">Excluir</button></td>
         </tr>
       </tbody>
@@ -79,11 +79,18 @@ export default {
       taskStatus: '',
       taskResponsible: '',
       tasks: [],
-      nextId: 1,
-      users: []
+      users: [],
+      editingTask: null // Para controlar a tarefa que está sendo editada
     }
   },
   methods: {
+    async cadastrarOuAtualizarTarefa() {
+      if (this.editingTask) {
+        await this.atualizarTarefa(this.editingTask);
+      } else {
+        await this.cadastrarTarefa();
+      }
+    },
     async cadastrarTarefa() {
       const newTask = {
         id: this.generateUniqueId(),
@@ -106,7 +113,32 @@ export default {
         alert('Erro ao cadastrar tarefa. Por favor, tente novamente.');
       }
     },
+    async atualizarTarefa(task) {
+      try {
+        const response = await axios.put(`http://localhost:5159/Tarefas/${task.id}`, {
+          Id: task.id,
+          Titulo: this.taskTitle,
+          Data: this.taskDate,
+          Status: this.taskStatus,
+          Responsavel: this.taskResponsible
+        });
 
+        if (response.status === 200) {
+          // Atualiza a lista de tarefas local com os novos dados
+          this.tasks = this.tasks.map(t => (t.id === task.id ? response.data : t));
+          console.log('Tarefa atualizada com sucesso:', response.data);
+          this.editingTask = null;
+          this.taskTitle = '';
+          this.taskDate = '';
+          this.taskStatus = '';
+          this.taskResponsible = '';
+        } else {
+          console.error('Falha ao atualizar tarefa:', response.data);
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar tarefa:', error);
+      }
+    },
     async buscarTarefas() {
       try {
         const response = await axios.get('http://localhost:5159/Tarefas');
@@ -115,12 +147,6 @@ export default {
         console.error('Erro ao buscar tarefas:', error);
       }
     },
-
-    generateUniqueId() {
-      const currentDate = new Date();
-      return parseInt(currentDate.getTime() / 1000);
-    },
-
     async buscarUsuarios() {
       try {
         const response = await axios.get('http://localhost:5159/Usuario');
@@ -129,16 +155,6 @@ export default {
         console.error('Erro ao buscar usuários:', error);
       }
     },
-
-    formatarData(data) {
-      if (!data) return '';
-      const dataObj = new Date(data);
-      const dia = dataObj.getDate().toString().padStart(2, '0');
-      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
-      const ano = dataObj.getFullYear();
-      return `${dia}/${mes}/${ano}`;
-    },
-
     async excluirTarefa(task) {
       try {
         const response = await axios.delete(`http://localhost:5159/Tarefas/${task.id}`);
@@ -151,15 +167,34 @@ export default {
       } catch (error) {
         console.error('Erro ao excluir tarefa:', error);
       }
+    },
+    iniciarEdicao(task) {
+      this.taskTitle = task.titulo;
+      this.taskDate = task.data;
+      this.taskStatus = task.status;
+      this.taskResponsible = task.responsavel;
+      this.editingTask = task;
+    },
+    generateUniqueId() {
+      const currentDate = new Date();
+      return parseInt(currentDate.getTime() / 1000);
+    },
+    formatarData(data) {
+      if (!data) return '';
+      const dataObj = new Date(data);
+      const dia = dataObj.getDate().toString().padStart(2, '0');
+      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+      const ano = dataObj.getFullYear();
+      return `${dia}/${mes}/${ano}`;
     }
   },
-
   mounted() {
     this.buscarUsuarios();
     this.buscarTarefas();
   }
 }
 </script>
+
 
 <style scoped>
 .task-form, .task-table, .task-h1 {

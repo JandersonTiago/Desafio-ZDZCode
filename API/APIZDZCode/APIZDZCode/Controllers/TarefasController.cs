@@ -155,5 +155,54 @@ namespace APIZDZCode.Controllers
 
             return tarefas;
         }
+
+        // Novo método PUT para atualizar tarefas
+        [HttpPut("{id}")]
+        public IActionResult AtualizarTarefa(int id, [FromBody] Tarefa tarefaAtualizada)
+        {
+            try
+            {
+                // Lógica para atualizar a tarefa no arquivo CSV
+                if (AtualizarTarefaNoCSV(id, tarefaAtualizada))
+                {
+                    return Ok(tarefaAtualizada); // Retorna 200 OK se a atualização for bem-sucedida
+                }
+                else
+                {
+                    return NotFound(); // Retorna 404 Not Found se a tarefa não for encontrada
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao atualizar tarefa: {ex.Message}"); // Retorna 500 Internal Server Error em caso de erro
+            }
+        }
+
+        private bool AtualizarTarefaNoCSV(int id, Tarefa tarefaAtualizada)
+        {
+            // Lê todas as tarefas do arquivo CSV
+            var tarefas = LerTarefasDoCSV().ToList();
+
+            // Encontra a tarefa com o ID correspondente
+            var tarefaParaAtualizar = tarefas.FirstOrDefault(t => t.Id == id);
+
+            // Se a tarefa foi encontrada, atualiza os campos necessários e reescreve o arquivo CSV
+            if (tarefaParaAtualizar != null)
+            {
+                tarefaParaAtualizar.Titulo = tarefaAtualizada.Titulo;
+                tarefaParaAtualizar.Data = tarefaAtualizada.Data;
+                tarefaParaAtualizar.Status = tarefaAtualizada.Status;
+                tarefaParaAtualizar.Responsavel = tarefaAtualizada.Responsavel;
+
+                // Reescreve o arquivo CSV com as tarefas atualizadas
+                ReescreverArquivoCSV(tarefas);
+
+                return true; // Retorna true indicando que a atualização foi bem-sucedida
+            }
+            else
+            {
+                return false; // Retorna false indicando que a tarefa não foi encontrada
+            }
+        }
     }
 }
